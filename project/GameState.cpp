@@ -1,201 +1,182 @@
 #include "GameState.h"
+#include <unordered_set>
 #include <sc2api/sc2_api.h>
 #include "Strategy.h"
-#include "main.cpp"
-#include <unordered_set>
+#include "PUnit.h"
+#include <iostream>
 
-class GameState
-{
-	static sc2::Race matchup;
-	static uint32_t playerId;
-	static sc2::UnitTypeData unitTypeData;
 
-	static int minerals, gas;
 
-	static sc2::Tag prism, scout1, scout2;
-	static std::unordered_map<sc2::Tag, const sc2::Unit*> nexi, gates, robos, stargates, pylons, cannons, batteries, cyberCores, forges, twilights, darkShrines, templarArchives, fleetBeacons, roboBays, assimilators, probes, army;
-	static std::unordered_map<sc2::Tag, const sc2::Unit*> enemyLarvae, enemyWorkers, enemyBaseStructures, enemyStaticDefenses, enemyOtherBuildings, enemyArmy;
-	static std::unordered_set<sc2::Tag> seenUnits;
+	sc2::Race GameState::matchup = sc2::Race::Protoss;
+	uint32_t GameState::playerId = 0;
+	sc2::UnitTypes GameState::unitTypeData = {};
+
+	int32_t GameState::minerals = 0;
+	int32_t GameState::gas = 0;
+
+	PUnit *GameState::prism = nullptr;
+	PUnit *GameState::scout1 = nullptr;
+	PUnit *GameState::scout2 = nullptr;
+
+	std::unordered_map<sc2::Tag, PUnit*> GameState::nexi = std::unordered_map<sc2::Tag, PUnit*>(3);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::gates = std::unordered_map<sc2::Tag, PUnit*>(8);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::robos = std::unordered_map<sc2::Tag, PUnit*>(2);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::stargates = std::unordered_map<sc2::Tag, PUnit*>(2);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::forges = std::unordered_map<sc2::Tag, PUnit*>(2);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::twilights = std::unordered_map<sc2::Tag, PUnit*>(1);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::darkShrines = std::unordered_map<sc2::Tag, PUnit*>(1);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::templarArchives = std::unordered_map<sc2::Tag, PUnit*>(1);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::fleetBeacons = std::unordered_map<sc2::Tag, PUnit*>(1);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::roboBays = std::unordered_map<sc2::Tag, PUnit*>(2);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::assimilators = std::unordered_map<sc2::Tag, PUnit*>(6);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::cyberCores = std::unordered_map<sc2::Tag, PUnit*>(1);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::pylons = std::unordered_map<sc2::Tag, PUnit*>(10);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::cannons = std::unordered_map<sc2::Tag, PUnit*>(6);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::batteries = std::unordered_map<sc2::Tag, PUnit*>(8);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::probes = std::unordered_map<sc2::Tag, PUnit*>(40);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::army = std::unordered_map<sc2::Tag, PUnit*>(40);
+
+	std::unordered_map<sc2::Tag, PUnit*> GameState::enemyLarvae = std::unordered_map<sc2::Tag, PUnit*>(20);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::enemyWorkers = std::unordered_map<sc2::Tag, PUnit*>(40);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::enemyBaseStructures = std::unordered_map<sc2::Tag, PUnit*>(3);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::enemyStaticDefenses = std::unordered_map<sc2::Tag, PUnit*>(3);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::enemyOtherBuildings = std::unordered_map<sc2::Tag, PUnit*>(15);
+	std::unordered_map<sc2::Tag, PUnit*> GameState::enemyArmy = std::unordered_map<sc2::Tag, PUnit*>(40);
+
+	std::unordered_set<sc2::Tag> *GameState::seenUnits = new std::unordered_set<sc2::Tag>(200);
 
 	GameState::GameState()
 	{
-		const std::vector<sc2::PlayerInfo> players = Bot::observation->GetGameInfo().player_info;
-		playerId = Bot::observation->GetPlayerID();
-		if (players[0].player_id == playerId)
-		{
-			matchup = players[1].race_actual;
-		}
-		else
-		{
-			matchup = players[0].race_actual;
-		}
-		if (matchup == sc2::Race::Zerg)
-		{
-			Strategy::workerGoal = 18;
-		}
-		else
-		{
-			Strategy::workerGoal = 16;
-		}
-
-		unitTypeData = Bot::observation->GetUnitTypeData;
-
-		nexi = std::unordered_map<sc2::Tag, const sc2::Unit*>(3);
-		gates = std::unordered_map<sc2::Tag, const sc2::Unit*>(8);
-		robos = std::unordered_map<sc2::Tag, const sc2::Unit*>(2);
-		stargates = std::unordered_map<sc2::Tag, const sc2::Unit*>(2);
-		forges = std::unordered_map<sc2::Tag, const sc2::Unit*>(2);
-		twilights = std::unordered_map<sc2::Tag, const sc2::Unit*>(1);
-		darkShrines = std::unordered_map<sc2::Tag, const sc2::Unit*>(1);
-		templarArchives = std::unordered_map<sc2::Tag, const sc2::Unit*>(1);
-		fleetBeacons = std::unordered_map<sc2::Tag, const sc2::Unit*>(1);
-		roboBays = std::unordered_map<sc2::Tag, const sc2::Unit*>(2);
-		assimilators = std::unordered_map<sc2::Tag, const sc2::Unit*>(6);
-		cyberCores = std::unordered_map<sc2::Tag, const sc2::Unit*>(1);
-		pylons = std::unordered_map<sc2::Tag, const sc2::Unit*>(10);
-		cannons = std::unordered_map<sc2::Tag, const sc2::Unit*>(6);
-		batteries = std::unordered_map<sc2::Tag, const sc2::Unit*>(8);
-		probes = std::unordered_map<sc2::Tag, const sc2::Unit*>(40);
-		army = std::unordered_map<sc2::Tag, const sc2::Unit*>(40);
-
-		enemyLarvae = std::unordered_map<sc2::Tag, const sc2::Unit*>(20);
-		enemyWorkers = std::unordered_map<sc2::Tag, const sc2::Unit*>(40);
-		enemyBaseStructures = std::unordered_map<sc2::Tag, const sc2::Unit*>(3);
-		enemyStaticDefenses = std::unordered_map<sc2::Tag, const sc2::Unit*>(3);
-		enemyOtherBuildings = std::unordered_map<sc2::Tag, const sc2::Unit*>(15);
-		enemyArmy = std::unordered_map<sc2::Tag, const sc2::Unit*>(40);
-
-		seenUnits = std::unordered_set<sc2::Tag>(200);
+	
 	}
 
-	void updateResources()
+	void GameState::updateResources(const sc2::ObservationInterface *observation)
 	{
-		minerals = Bot::observation->GetMinerals;
-		minerals = Bot::observation->GetVespene;
+		minerals = observation->GetMinerals();
+		gas = observation->GetVespene();
 	}
 
-	void updateExistingUnits()
+	void GameState::updateExistingUnits(std::unordered_map<sc2::Tag, PUnit*> *map, const sc2::ObservationInterface *observation)
 	{
-		updateExistingUnits(nexi);
-		updateExistingUnits(gates);
-		updateExistingUnits(robos);
-		updateExistingUnits(stargates);
-		updateExistingUnits(forges);
-		updateExistingUnits(twilights);
-		updateExistingUnits(darkShrines);
-		updateExistingUnits(templarArchives);
-		updateExistingUnits(fleetBeacons);
-		updateExistingUnits(roboBays);
-		updateExistingUnits(assimilators);
-		updateExistingUnits(cyberCores);
-		updateExistingUnits(pylons);
-		updateExistingUnits(cannons);
-		updateExistingUnits(batteries);
-		updateExistingUnits(probes);
-		updateExistingUnits(army);
-
-		updateExistingUnits(enemyLarvae);
-		updateExistingUnits(enemyWorkers);
-		updateExistingUnits(enemyBaseStructures);
-		updateExistingUnits(enemyStaticDefenses);
-		updateExistingUnits(enemyOtherBuildings);
-		updateExistingUnits(enemyArmy);
-	}
-
-	void updateExistingUnits(std::unordered_map<sc2::Tag, const sc2::Unit*> map)
-	{
-		for (std::unordered_map<sc2::Tag, const sc2::Unit*>::iterator iterator = map.begin(); iterator != map.end(); ++iterator)
+		for (std::unordered_map<sc2::Tag, PUnit*>::iterator iterator = map->begin(); iterator != map->end(); ++iterator)
 		{
-			const sc2::Unit* updatedUnit = Bot::observation->GetUnit(iterator->first);
-			if (updatedUnit == nullptr)
+			if (!iterator->second->updateUnit(observation))
 			{
-				seenUnits.erase(iterator->first);
-				iterator = map.erase(iterator)--;
-			}
-			else
-			{
-				map[iterator->first] = updatedUnit;
+				delete iterator->second;
+				seenUnits->erase(iterator->first);
+				iterator = map->erase(iterator)--;
 			}
 			break;
 		}
 	}
 
-	void findNewUnits()
+	void GameState::updateExistingUnits(const sc2::ObservationInterface *observation)
 	{
-		sc2::Units allUnits = Bot::observation->GetUnits();
-		for (int index = 0; index < allUnits.size; ++index)
+		updateExistingUnits(&nexi, observation);
+		updateExistingUnits(&gates, observation);
+		updateExistingUnits(&robos, observation);
+		updateExistingUnits(&stargates, observation);
+		updateExistingUnits(&forges, observation);
+		updateExistingUnits(&twilights, observation);
+		updateExistingUnits(&darkShrines, observation);
+		updateExistingUnits(&templarArchives, observation);
+		updateExistingUnits(&fleetBeacons, observation);
+		updateExistingUnits(&roboBays, observation);
+		updateExistingUnits(&assimilators, observation);
+		updateExistingUnits(&cyberCores, observation);
+		updateExistingUnits(&pylons, observation);
+		updateExistingUnits(&cannons, observation);
+		updateExistingUnits(&batteries, observation);
+		updateExistingUnits(&probes, observation);
+		updateExistingUnits(&army, observation);
+
+		updateExistingUnits(&enemyLarvae, observation);
+		updateExistingUnits(&enemyWorkers, observation);
+		updateExistingUnits(&enemyBaseStructures, observation);
+		updateExistingUnits(&enemyStaticDefenses, observation);
+		updateExistingUnits(&enemyOtherBuildings, observation);
+		updateExistingUnits(&enemyArmy, observation);
+	}
+
+	void GameState::findNewUnits(const sc2::ObservationInterface *observation)
+	{
+		sc2::Units allUnits = observation->GetUnits();
+
+		for (int index = 0; index < allUnits.size(); ++index)
 		{
-			if (seenUnits.find(allUnits[index]->tag) != seenUnits.end)
+			if (seenUnits->find(allUnits[index]->tag) == seenUnits->end())
 			{
-				seenUnits.insert(allUnits[index]->tag);
+				seenUnits->insert(allUnits[index]->tag);
 				if (allUnits[index]->owner == playerId)
 				{
-					switch (allUnits[index]->unit_type.ToType)
+					switch (allUnits[index]->unit_type.ToType())
 					{
 					case sc2::UNIT_TYPEID::PROTOSS_PROBE:
-						probes[allUnits[index]->tag] = allUnits[index];
+						probes[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_NEXUS:
-						nexi[allUnits[index]->tag] = allUnits[index];
+						nexi[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_WARPPRISM:
-						prism = allUnits[index]->tag;
+						prism = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_GATEWAY:
 					case sc2::UNIT_TYPEID::PROTOSS_WARPGATE:
-						gates[allUnits[index]->tag] = allUnits[index];
+						gates[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_ROBOTICSFACILITY:
-						robos[allUnits[index]->tag] = allUnits[index];
+						robos[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_ROBOTICSBAY:
-						roboBays[allUnits[index]->tag] = allUnits[index];
+						roboBays[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_STARGATE:
-						stargates[allUnits[index]->tag] = allUnits[index];
+						stargates[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_FLEETBEACON:
-						fleetBeacons[allUnits[index]->tag] = allUnits[index];
+						fleetBeacons[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_CYBERNETICSCORE:
-						cyberCores[allUnits[index]->tag] = allUnits[index];
+						cyberCores[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_TWILIGHTCOUNCIL:
-						twilights[allUnits[index]->tag] = allUnits[index];
+						twilights[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_DARKSHRINE:
-						darkShrines[allUnits[index]->tag] = allUnits[index];
+						darkShrines[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_TEMPLARARCHIVE:
-						templarArchives[allUnits[index]->tag] = allUnits[index];
+						templarArchives[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_FORGE:
-						forges[allUnits[index]->tag] = allUnits[index];
+						forges[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_PYLON:
-						pylons[allUnits[index]->tag] = allUnits[index];
+						pylons[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_PHOTONCANNON:
-						cannons[allUnits[index]->tag] = allUnits[index];
+						cannons[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
-						batteries[allUnits[index]->tag] = allUnits[index];
+						batteries[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::PROTOSS_ASSIMILATOR:
-						assimilators[allUnits[index]->tag] = allUnits[index];
+						assimilators[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					default:
-						army[allUnits[index]->tag] = allUnits[index];
+						army[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					}
 				}
 				else
 				{
-					switch (allUnits[index]->unit_type.ToType)
+					PUnit *unit;
+					switch (allUnits[index]->unit_type.ToType())
 					{
 					case sc2::UNIT_TYPEID::TERRAN_PLANETARYFORTRESS:
-						enemyBaseStructures[allUnits[index]->tag] = allUnits[index];
-						enemyStaticDefenses[allUnits[index]->tag] = allUnits[index];
+						unit = new PUnit(allUnits[index], allUnits[index]->tag);
+						enemyBaseStructures[allUnits[index]->tag] = unit;
+						enemyStaticDefenses[allUnits[index]->tag] = unit;
 						break;
 					case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTER:
 					case sc2::UNIT_TYPEID::TERRAN_COMMANDCENTERFLYING:
@@ -205,7 +186,7 @@ class GameState
 					case sc2::UNIT_TYPEID::ZERG_LAIR:
 					case sc2::UNIT_TYPEID::ZERG_HIVE:
 					case sc2::UNIT_TYPEID::PROTOSS_NEXUS:
-						enemyBaseStructures[allUnits[index]->tag] = allUnits[index];
+						enemyBaseStructures[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::ZERG_SPINECRAWLER:
 					case sc2::UNIT_TYPEID::ZERG_SPORECRAWLER:
@@ -213,20 +194,20 @@ class GameState
 					case sc2::UNIT_TYPEID::TERRAN_BUNKER:
 					case sc2::UNIT_TYPEID::PROTOSS_PHOTONCANNON:
 					case sc2::UNIT_TYPEID::PROTOSS_SHIELDBATTERY:
-						enemyStaticDefenses[allUnits[index]->tag] = allUnits[index];
+						enemyStaticDefenses[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::TERRAN_SCV:
 					case sc2::UNIT_TYPEID::TERRAN_MULE:
 					case sc2::UNIT_TYPEID::PROTOSS_PROBE:
 					case sc2::UNIT_TYPEID::ZERG_DRONE:
-						enemyWorkers[allUnits[index]->tag] = allUnits[index];
+						enemyWorkers[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					case sc2::UNIT_TYPEID::ZERG_LARVA:
-						enemyLarvae[allUnits[index]->tag] = allUnits[index];
+						enemyLarvae[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						break;
 					default:
 						bool structure = false;
-						std::vector<sc2::Attribute> unitAttributes = unitTypeData[allUnits[index]->unit_type.ToType].attributes;
+						std::vector<sc2::Attribute> unitAttributes = unitTypeData[static_cast<int>(allUnits[index]->unit_type.ToType())].attributes;
 						for (std::vector<sc2::Attribute>::iterator AttrIterator = unitAttributes.begin(); AttrIterator != unitAttributes.end(); ++AttrIterator)
 						{
 							if (*AttrIterator == sc2::Attribute::Structure)
@@ -237,23 +218,20 @@ class GameState
 						}
 						if (structure)
 						{
-							enemyOtherBuildings[allUnits[index]->tag] = allUnits[index];
+							enemyOtherBuildings[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						}
 						else
 						{
-							enemyArmy[allUnits[index]->tag] = allUnits[index];
+							enemyArmy[allUnits[index]->tag] = new PUnit(allUnits[index], allUnits[index]->tag);
 						}
-						delete &unitAttributes;
 						break;
 					}
 				}
 			}
 		}
-		delete &allUnits;
 	}
 
 
 	GameState::~GameState()
 	{
 	}
-};

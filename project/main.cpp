@@ -2,28 +2,55 @@
 #include "PUnit.h"
 #include "Strategy.h"
 #include "GameState.h"
+#include "MoneyManager.h"
+#include "BuildOrder.h"
+#include "UnitManager.h"
 #include <iostream>
 
 using namespace sc2;
 
-class Bot : public Agent {
-	Race matchup;
-public:
-	static GameState gameState;
-	static const ObservationInterface *observation;
-	static ActionInterface *actions;
+class Bot : public Agent 
+{
+	GameState gameState = GameState();
+	MoneyManager moneyManager = MoneyManager();
+	UnitManager unitManager = UnitManager();
+	Strategy strategy = Strategy();
+	const ObservationInterface *observation = nullptr;
+	ActionInterface *actions = nullptr;
 
 	virtual void OnGameStart() final
 	{
-		gameState = GameState();
+		observation = Observation();
+
+		Strategy::currentBuild->addStartGoal(BuildOrder::GOALTYPE::BUILD_PYLON, 14);
+
+		const std::vector<sc2::PlayerInfo> players = observation->GetGameInfo().player_info;
+		GameState::playerId = observation->GetPlayerID();
+		if (players[0].player_id == GameState::playerId)
+		{
+			GameState::matchup = players[1].race_actual;
+		}
+		else
+		{
+			GameState::matchup = players[0].race_actual;
+		}
+
+		GameState::unitTypeData = observation->GetUnitTypeData();
 	}
 
-    virtual void OnStep() final {
+	virtual void OnStep() final
+	{
 		observation = Observation();
+
 		actions = Actions();
-		gameState.updateExistingUnits();
-		gameState.findNewUnits();
-		gameState.updateResources();
+		gameState.updateExistingUnits(observation);
+		gameState.findNewUnits(observation);
+
+
+		gameState.updateResources(observation);
+		moneyManager.followBuild(Strategy::currentBuild, actions);
+		unitManager.executeOrders(actions);
+	}
 };
 
 int main(int argc, char* argv[]) {

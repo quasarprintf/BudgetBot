@@ -1,10 +1,11 @@
 #pragma once
+#include "BuildOrder.h"
+#include <sc2api/sc2_api.h>
 
-static class Strategy : public Agent
+class Strategy
 {
 public:
-    static int workerGoal;
+	static BuildOrder *currentBuild;
 	Strategy();
 	~Strategy();
 };
-

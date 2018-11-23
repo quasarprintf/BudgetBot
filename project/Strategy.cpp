@@ -1,16 +1,15 @@
 #include "Strategy.h"
+#include "BuildOrder.h"
 #include <sc2api/sc2_api.h>
+#include <iostream>
 
-static class Strategy : public Agent
+
+BuildOrder *Strategy::currentBuild = new BuildOrder();
+Strategy::Strategy()
 {
-
-	public: static int workerGoal;
-	Strategy::Strategy()
-	{
-	}
+}
 
 
-	Strategy::~Strategy()
-	{
-	}
-};
+Strategy::~Strategy()
+{
+}
