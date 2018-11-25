@@ -9,6 +9,12 @@ Strategy::Strategy()
 {
 }
 
+void findMainWall(sc2::ObservationInterface *observation)
+{
+
+}
+
+
 
 Strategy::~Strategy()
 {

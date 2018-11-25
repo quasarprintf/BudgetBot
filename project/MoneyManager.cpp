@@ -11,12 +11,13 @@ MoneyManager::MoneyManager()
 
 void MoneyManager::followBuild(BuildOrder *build, sc2::ActionInterface *actions)
 {
-	if (GameState::probes.size() < build->first->probeGoal)
+	if (GameState::unitGroups[GameState::unitGroup::PROBES].size() < build->first->probeGoal)
 	{
-		for (std::unordered_map<sc2::Tag, PUnit*>::iterator iterator = GameState::nexi.begin(); iterator != GameState::nexi.end(); ++iterator)
+		for (std::unordered_map<sc2::Tag, PUnit*>::iterator iterator = GameState::unitGroups[GameState::unitGroup::NEXI].begin(); iterator != GameState::unitGroups[GameState::unitGroup::NEXI].end(); ++iterator)
 		{
-			std::cout << "minerals: " << GameState::minerals << "\n";
-			std::cout << "orders: " << iterator->second->unitSnapshot->orders.size() << "\n";
+			//std::cout << "minerals: " << GameState::minerals << "\n";
+			//std::cout << "goal: " << build->first->probeGoal << "\n";
+			//std::cout << "orders: " << iterator->second->unitSnapshot->orders.size() << "\n";
 			if (iterator->second->unitSnapshot->orders.size() == 0 && GameState::minerals >= 50)
 			{
 				std::cout << "training probe\n";

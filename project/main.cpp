@@ -7,6 +7,8 @@
 #include "UnitManager.h"
 #include <iostream>
 
+#include "windows.h"
+
 using namespace sc2;
 
 class Bot : public Agent 
@@ -25,8 +27,7 @@ class Bot : public Agent
 		Strategy::currentBuild->addStartGoal(BuildOrder::GOALTYPE::BUILD_PYLON, 14);
 
 		const std::vector<sc2::PlayerInfo> players = observation->GetGameInfo().player_info;
-		GameState::playerId = observation->GetPlayerID();
-		if (players[0].player_id == GameState::playerId)
+		if (players[0].player_id == observation->GetPlayerID())
 		{
 			GameState::matchup = players[1].race_actual;
 		}
@@ -50,6 +51,7 @@ class Bot : public Agent
 		gameState.updateResources(observation);
 		moneyManager.followBuild(Strategy::currentBuild, actions);
 		unitManager.executeOrders(actions);
+		Sleep(40);
 	}
 };
 

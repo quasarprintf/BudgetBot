@@ -3,38 +3,6 @@
 #include "PUnit.h"
 #include <iostream>
 
-
-enum GOALTYPE
-{
-	CANNON_RUSH,
-	SEND_SCOUT,
-
-	BUILD_PYLON,
-	BUILD_FORGE,
-	BUILD_GATEWAY,
-	BUILD_CYBER,
-	BUILD_ROBO,
-	BUILD_ROBOBAY,
-	BUILD_STARGATE,
-	BUILD_FLEETBEACON,
-	BUILD_TWILIGHT,
-	BUILD_ARCHIVES,
-	BUILD_SHRINE,
-	BUILD_NEXUS,
-	BUILD_ASSIMILATOR,
-};
-
-struct goal
-{
-	GOALTYPE goalType;
-	int probeGoal;
-	PUnit *targetUnit;
-	int specification;	//should be set to enums
-	goal *nextGoal;
-};
-
-goal *first, *last;
-
 BuildOrder::BuildOrder()
 {
 	first = nullptr;

@@ -1,5 +1,6 @@
 #include "PUnit.h"
 #include <sc2api/sc2_api.h>
+#include <iostream>
 
 
 const sc2::Unit *unitSnapshot;
@@ -20,7 +21,7 @@ bool PUnit::updateUnit(const sc2::ObservationInterface *observation)
 	newAction = false;
 	if (unitSnapshot == nullptr)
 	{
-		return false;	//unit no longer exists
+		return false;	//unit no longer visible
 	}
 	return true;		//unit still exists
 }
